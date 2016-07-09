@@ -1,0 +1,92 @@
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+/*
+Kyle Sturmer
+Program 9
+Pictures Concentric Circles
+11/28/15 
+*/
+
+void makeCircle(char *argv[], FILE *image, int nrows, int ncols){
+	double minGray = atoi(argv[4]);
+	double maxGray = atoi(argv[5]);
+	double numCirc = atoi(argv[6]);
+	double iteration = (maxGray - minGray) / numCirc;
+	int rc, cc, counter;      
+	int rd, cd;      
+	double radius, dist;
+	int check = 0;
+
+	if (nrows<ncols)
+		radius = nrows / 2;
+	else
+		radius = ncols / 2;
+
+	rc = nrows / 2;
+	cc = ncols / 2;
+	for (int r = 0; r<nrows; r++)
+	{
+		rd = r - rc;
+		for (int c = 0; c<ncols; c++)
+		{
+			counter = 0;
+			cd = c - cc;
+			dist = sqrt((double)(rd*rd + cd*cd));
+			check = radius / numCirc;
+			int check2 = check;
+			for (double k = numCirc; k > 0; k--){
+					if (dist < check2){
+						fputc(maxGray - (k * iteration), image);
+						counter++;
+						break;
+					}
+					check2 += check;						
+			}
+			if (counter == 0)
+				fputc(maxGray, image);							
+		}
+	}
+}
+
+void openImage(char *argv[], FILE **image, int *nrows, int *ncols){
+	if ((*image = fopen(argv[1], "wb")) == NULL){
+		printf("file %s could not be created\n", argv[1]);
+		exit(EXIT_FAILURE);
+	}
+	*nrows = atoi(argv[2]);
+	if (*nrows < 1){
+		printf("number of rows must be positive\n");
+		exit(EXIT_FAILURE);
+	}
+	*ncols = atoi(argv[3]);
+	if (*ncols < 1){
+		printf("number of columns must be positive\n");
+		exit(EXIT_FAILURE);
+	}
+}
+
+void writeHeader(FILE *image, int nrows, int ncols)
+{
+	fprintf(image, "P5 ");
+	fprintf(image, "# Created by Kyle Sturmer\n");
+	fprintf(image, "%d %d %d ", ncols, nrows, 255);
+}
+
+int main(int argc, char *argv[]){
+	int nrows, ncols;
+	FILE *image;
+	if (argc != 7)
+	{
+		printf("circle fileName.pgm nrows ncols\n");
+		return 0;
+	}
+	openImage(argv, &image, &nrows, &ncols);
+	writeHeader(image, nrows, ncols);
+	makeCircle(argv, image, nrows, ncols);
+	fclose(image);
+	return 1;
+}
